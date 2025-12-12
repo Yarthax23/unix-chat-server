@@ -25,13 +25,33 @@
 * Explotación / seguridad básica
 * Concurrencia: varios clientes leyendo/escribiendo simultáneamente
 * “Graceful client disconnects”
-
   * cómo detectar desconexión normal (`recv() == 0`)
   * desconexión abrupta (`recv() < 0`, errno=ECONNRESET)
   * remover del array/lista (reajustes/liberar mem)
   * cerrar socket
   * informar al resto (opcional) [server] user Juan disconnected
   * no dejar FD inválidos en `select()`
+* Concurrency models & signals
+  * `select()` vs threads + mutex
+    - Single-threaded, event-driven
+    - Easier to maintain for small number of clients
+    - No mutex needed if carefully managing structures
+    - Limitations in scalability
+    vs
+    - Each client in separate thread
+    - Shared structures require mutex
+    - Risk of deadlocks, higher memory usage
+    - Conceptually similar to fork() but threads share memory
+  * fork() + copy-on-write
+    - Each client in a separate process
+    - Memory not shared (copy-on-write)
+    - Communication via sockets/pipes
+    - Less convenient for chat app
+  * señales y manejo de procesos (`exit()`, `wait()`, `signal()` deprecated, investigar `sigaction()`)
+  * epoll() (Linux, escalable)
+    - Scalable alternative to select()
+    - Efficient with many clients
+    - More complex to implement
 
 ---
 
@@ -72,7 +92,6 @@
 
   * A: `select()`
   * B: threads + mutex
-
     * ¿relación con `fork()`?
     * señales vs `pthread_*`
   * C: epoll (Linux)
