@@ -1,5 +1,12 @@
-2025-11-12
-- Creé el repo
-- Escribí README, NOTES y PROJECT_LOG inicial
-- Investigando Commit Convention
-- Investigando sockets en C
+## 2025-11-12
+### Added
+- Initial commit
+- Base project structure (app/, src/, test/, docs)
+- Makefile with basic build automation
+
+### Changed
+- Improved .gitignore configuration
+- Defined commit style and structural conventions
+
+### Notes
+- First setup day; groundwork for future development.

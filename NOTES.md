@@ -2,40 +2,6 @@ GitHub no es un "museo de proyectos terminados".
 Es un historial de tu proceso.
 
 
-README.md   -> lo que ve alguien por primera vez (para el visitante)  
-* Qué es este proyecto?
-    * Cómo funciona la estructura básica del protocolo (el mensaje entre cliente y servidor, muy resumido)
-    * Saber cómo contribuir (si aplica)
-* Cómo se ejecuta?
-    * Cómo compilar, cómo correr
-* En qué estado está?
-* Decisiones técnicas importantes
-* Problemas y soluciones
-
-NOTES.md    -> tu cerebro volcado ahí adentro
-* Ideas
-* Dudas
-* Decisiones sin cerrar
-* Mini-roadmap
-* Cosas para revisar
-* Cosas para investigar
-* Futuros features
-* Un link, un recordatorio, lo que sea
-
-LOG.md      -> el diario del proyecto
-* lo que hiciste cada día
-* qué rompiste
-* qué arreglaste
-* qué aprendiste
-* mini retrospectivas
-
-DOCS       -> Si el proyecto crece
-* descripción detallada del protocolo
-* arquitectura del servidor
-* diagramas
-* justificativos técnicos
-
-
 Ideas:
 * implementar salas
 * pensar un pequeño protocolo
@@ -47,6 +13,9 @@ Cosas para investigar:
 
 Dudas: 
 * revisar qué modelo de sincronización usar
+    * opc A: select()
+    * opc B: threads + mutex <duda : es lo mismo que fork() ? -> wait(), signal vs sigaction>
+    * opc C (avanzada): epoll (Linux)
 
 Futuros features:
 
@@ -63,6 +32,7 @@ Notas personales:
 *Fase A Base técnica en C (2-6 semanas)*
 1. Chat TCP simple en C
     * sockets
+        * socket(), bind(), listen(), accept(), connect(), recv()/send()
     * cliente/servidor
     * enviar/recibir texto
     * seguridad mínima (validación de input básica)
@@ -70,12 +40,22 @@ Notas personales:
 2. Agregar salas + interacción
     * sincronización (mutex, select, poll, epoll)
     * manejo de estructuras de datos
+        * typedef struct {
+            int socket;
+            char username[32];
+            int room_id;
+        } Client
+        * lista dinámica de clientes
+        * diccionario de salas (hash map simple o array)
     * protocolito simple de mensajes
 3. Mini-juegos dentro del chat
     * adivinar número
     * tirar dados
     * decisiones compartidas
-    * empezar a pensar "comandos" dentro del chat
+    * empezar a pensar "comandos" dentro del chat > if (buffer[0] == '/')
+        * /roll
+        * /guess 1-10
+        * /vote start
 
 *FASE B Migración a Go (cuando ya fluya C)*  
 4. Migrar la lógica principal a Go  
