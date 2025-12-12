@@ -1,0 +1,13 @@
+bin/
+*.o
+*.out
+*.exe
+
+# Debug
+*.dSYM/
+
+# Editor stuff
+.vscode/
+*.swp
+*.tmp
+*.log
