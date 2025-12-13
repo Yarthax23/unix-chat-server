@@ -18,24 +18,31 @@ void init_clients(void){
     }
 }
 
-void start_server(int port){
-    // Testea buen import/call desde main
-    printf("[server] Running in port %d...\n", port);
+void start_server(const char *socket_path){
+    // Validate input
+    if (strlen(socket_path) >= sizeof(server_addr.sun_path)) {
+        fprintf(stderr, "Socket path too long\n");
+        exit(EXIT_FAILURE);
+    }
 
-    // Config Socket boilerplate
+    // Prepare address
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sun_family = AF_UNIX;
-    
     snprintf(server_addr.sun_path, 
              sizeof(server_addr.sun_path),
              "%s",
-             "unix_socket");      
-    unlink(server_addr.sun_path);
+             socket_path);               
     
+    // Remove stale socket file
+    unlink(server_addr.sun_path);
+
+    // Create socket
     server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_socket == -1) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
+    
     if (bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1) {
         perror("bind");
         exit(EXIT_FAILURE);

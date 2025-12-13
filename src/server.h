@@ -14,7 +14,7 @@ typedef struct {
 } Client;
 
 // Public server functions
-void start_server(int port);
+void start_server(const char *socket_path);
 void init_clients(void);
 
 void broadcast_message(const char *msg);
