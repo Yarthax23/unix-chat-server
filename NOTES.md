@@ -14,6 +14,7 @@
   * número secreto
   * consumidor/productor (lavarropas)
   * simular una pequeña sociedad
+* Futuro: Puedo hacer un chat parcial? Se me ocurría que los clientes puedan hacer brainstorm, y que el chat compartido se actualice in-sito (live) ordenado alfabéticamente y/o por popularidad sin borrar el texto anterior (al pedido de /brainstorm); quizás guardando las "ideas" en una lista que ordena con cada inserción, un árbol binario? trie? heap? Ésto tiene exploit? O simplemente abro un chat/sala nuevos para ese /brainstorm y hago clean/write cada vez (cliente tendría que tener 2 chats abiertos?)?
 * Futuro: migrar a Go
 
 ---
