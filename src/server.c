@@ -84,7 +84,8 @@ void start_server(const char *socket_path)
         if (ready == -1)
         {
             perror("select");
-            break; // allows control and cleanup
+            // Allows control and cleanup
+            break; 
         }
 
         //  New Client
@@ -115,13 +116,53 @@ void start_server(const char *socket_path)
                                  0);
                 if (n <= 0)
                 {
-                    // client closed or error
+                    // Client closed or error
+                    if (n<0) perror("recv");
                     client_remove(i);
+                    continue;
                 }
                 else
                 {
-                    // handle client
-                    // handle_message(fd, buf, n); // broadcast message?
+                    // Handle client
+                    clients[i].inbuf_len += n;
+
+                    // Overflow check
+                    if (clients[i].inbuf_len == INBUF_SIZE)
+                    {
+                        if (!memchr(clients[i].inbuf, '\n', clients[i].inbuf_len))
+                        {
+                            fprintf(stderr, "[server] Client %d buffer overflow\n", i);
+                            client_remove(i);
+                            continue;
+                        }
+                    }
+
+                    // Parsing
+                    while (1)
+                    {
+                        char *nl = (char *)memchr(clients[i].inbuf, '\n', clients[i].inbuf_len);
+                        if (!nl)
+                            break;
+
+                        size_t msg_len = (size_t)(nl - clients[i].inbuf);
+
+                        // Strip CR if present
+                        if (msg_len > 0 && clients[i].inbuf[msg_len - 1] == '\r')
+                            msg_len--;
+
+                        // Extract msg & make it null-terminated for convenience
+                        char msg[INBUF_SIZE];
+                        memcpy(msg, clients[i].inbuf, msg_len);
+                        msg[msg_len] = '\0';
+
+                        // Process msg (next step) → handle_command(client, message, length);
+                        printf("[server] Client %d says: %s\n", i, msg);
+
+                        // Remove processed bytes (+1 for '\n')
+                        size_t remaining = clients[i].inbuf_len - (nl - clients[i].inbuf + 1);
+                        memmove(clients[i].inbuf, nl + 1, remaining);
+                        clients[i].inbuf_len = remaining;
+                    }
                 }
             }
         }
@@ -154,13 +195,14 @@ int find_client_by_fd(int fd)
 void client_init(Client *c)
 {
     memset(c, 0, sizeof(*c));
-    c->socket  = -1;
+    c->socket = -1;
     c->room_id = -1;
 }
 
 void client_remove(int idx)
 {
-    if (clients[idx].socket != -1){
+    if (clients[idx].socket != -1)
+    {
         close(clients[idx].socket);
     }
     client_init(&clients[idx]);
