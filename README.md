@@ -47,11 +47,12 @@ Simple line-base protocol
 ├── app/
 │   └── main.c              # Application entry point
 ├── docs/
+│   ├── architecture.md     # Server architecture overview
 │   └── standards.md        # Internal conventions & templates
 ├── src/
 │   ├── app.c               # Application logic (core implementation)
-│   ├── server.c            # Server Logic (core implementation).
-│   └── server.h            # Prototypes and public structures.
+│   ├── server.c            # Server Logic (core implementation)
+│   └── server.h            # Prototypes and public structures
 ├── test/
 ├── NOTES.md                # Personal notes, sketches, ideas
 ├── PROJECT_LOG.md          # Daily progress log
