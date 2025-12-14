@@ -1,4 +1,5 @@
 # Server Architecture
+> What must always be true?
 
 ## Overview
 
@@ -119,15 +120,34 @@ Therefore, the protocol must define explicit framing.
 
 **Delimiter-based protocol (****`\n`****)**
 
-* Each command ends with `\n`
-* Server buffers incoming data per client
-* Complete lines are extracted and processed
+* Message delimiter: `\n`
+    * Never parse past the first delimiter
+* Server buffers incoming data per-client
+    * Messages may arrive fragmented or coalesced
+    * Complete lines are extracted and processed - FIFO
+    * New bytes are only appended at `inbuf + inbuf_len`
+* Maximum message length: INBUF_SIZE - 1
+* Buffer overflow → disconnect (log error)
+* Malformed command → disconnect
+* recv() == 0 → disconnect
 
 Benefits:
 
 * Simple implementation
 * Easy debugging with tools like `nc` or `socat`
 * Human-readable traffic
+
+**Accept CRLF, normalize to LF**
+
+* Treat `\n` as the delimiter
+* If the byte before is `\r`, strip it
+
+This gives:
+
+* Interoperability
+* No added complexity
+* Better learning value
+
 
 ---
 

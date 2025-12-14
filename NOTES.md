@@ -57,6 +57,10 @@ This section tracks future diagram ideas only.
   * buffers
   * non-blocking I/O
   * escalabilidad
+  * If error responses are later added, server will need a distinction between:
+    * client-directed messages
+    * broadcast messages  
+  This is intentionally deferred to avoid protocol complexity during initial framing work.
 
 ---
 
