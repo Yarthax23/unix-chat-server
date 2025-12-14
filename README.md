@@ -1,111 +1,145 @@
-# TCP Chat Server in C
-A personal project to learn low-level networking, sockets, concurrency, and systems programming fundamentals.
-The goal is to build a functional multi-level chat server with rooms, message broadcasting, and simple interactive commands.
+# Event‑Driven Chat Server in C
 
-## Features (Current & Upcoming)
+A learning‑focused systems programming project to explore **low‑level networking**, **I/O multiplexing**, and **protocol design** in C.
+
+The project incrementally builds a multi‑client chat server, prioritizing correctness, explicit state management, and clear architectural decisions.
+
+
+
+## Current Status
+
+**Current implementation**
+
+* UNIX domain stream sockets (`AF_UNIX`, `SOCK_STREAM`)
+* Single‑process, single‑threaded server
+* Event‑driven I/O using `select()`
+* Fixed‑size client table
+* Line‑based text protocol (planned, `\n`‑terminated)
+
+**TCP support is planned for a later phase**, particularly during the Go migration.
+
+
+## Features
+
 ### Implemented
-* Basic project skeleton
-* Build automation via `Makefile`
-* Initial planning and documentation
 
-### Planned (near future)
-* TCP Server handling multiple clients
-* Broadcasting messages to all connected clients
-* Basic text protocol (`\n`-terminated messages)
-* Command system (`/rooms`,`/join`,`/quit`, ...)
-* Graceful client disconnects
+* Project skeleton and build automation (`Makefile`)
+* AF_UNIX server socket setup
+* `select()`‑based event loop
+* Client tracking via fixed‑size array
+* Architecture and design documentation
 
-### Planned (mid-term)
-* Small built-in minigames (`/roll`,`/guess`,`/vote`)
-* Port to Go for learning purposes
-* REST API version
+### Planned (near term)
+
+* Line‑based text protocol (`\n`‑terminated)
+* Message broadcasting
+* Command system (`/rooms`, `/join`, `/quit`, …)
+* Graceful client disconnect handling
+* Input buffering and protocol framing
+
+### Planned (mid‑term)
+
+* Chat rooms
+* Small built‑in minigames (`/roll`, `/guess`, `/vote`)
+* Migration to TCP during Go rewrite
+* REST API
 * Dockerization
-* Optional UI in React
 
-## Protocol Overview
-Simple line-base protocol
-* Text messages end with `\n`
+
+## Protocol Overview (Planned)
+
+Simple text protocol:
+
+* Messages are UTF‑8 text ending with `\n`
 * Commands start with `/`
-* Supported commands (planned):
-    * `/rooms` -> list available rooms
-    * `/join <room>` -> join a specific room
-    * `/quit` -> disconnect
+* Example commands:
+
+  * `/rooms` — list available rooms
+  * `/join <room>` — join a room
+  * `/quit` — disconnect
+
 
 ## Build Instructions
+
 ### Compile
-`make all`
+
+```sh
+make all
+```
 
 ### Run the server
-`make run` 
+
+```sh
+make run
+```
 
 ### Clean build artifacts
-`make`
+
+```sh
+make clean
+```
 
 
 ## Project Structure
-```bash
+
+```text
 ├── app/
 │   └── main.c              # Application entry point
 ├── docs/
-│   ├── architecture.md     # Server architecture overview
-│   └── standards.md        # Internal conventions & templates
+│   ├── architecture.md     # Canonical architecture documentation
+│   └── standards.md        # Internal coding and design rules
 ├── src/
-│   ├── app.c               # Application logic (core implementation)
-│   ├── server.c            # Server Logic (core implementation)
-│   └── server.h            # Prototypes and public structures
+│   ├── server.c            # Server implementation
+│   └── server.h            # Public server interface
 ├── test/
-├── NOTES.md                # Personal notes, sketches, ideas
-├── PROJECT_LOG.md          # Daily progress log
-├── README.md               # Project documentation (this file)
-├── Makefile                # Build automation
-└── .gitignore             
+├── NOTES.md                # Personal notes and ideas
+├── PROJECT_LOG.md          # Daily progress and decisions
+├── README.md               # Project overview (this file)
+├── Makefile
+└── .gitignore
 ```
 
-## Architecture (High-Level Overview)
-### Server
-* Opens a TCP socket
-* Accepts multiple clients
-* Stores clients in a list
-* Uses `select()` or threads to handle concurrency
-* Broadcasts messages or processes commands
 
-### Client
-* Connects to server
-* Sends user input
-* Receive and print messages from others
+## Architecture (High‑Level)
+
+* Single process
+* Event‑driven I/O using `select()`
+* Clients managed via a fixed‑size table
+* Explicit protocol framing (no reliance on `recv()` boundaries)
+
+See `docs/architecture.md` for full details.
+
 
 ## Roadmap
-### Phase A: Core in C
-1. Multi-client TCP Chat
+
+### Phase A — Core in C
+
+1. Multi‑client chat server (AF_UNIX)
 2. Rooms
-3. Commands & mini-protocol
+3. Commands and protocol framing
 4. Minigames
-5. Refactor + stability pass
+5. Stability and refactor pass
 
-### Phase B: Migration to Go
-6. Port logic to Go
-7. Build REST API
-8. Dockerize
+### Phase B — Migration to Go
 
-### Phase C: UI
-9. Optional React Interface
-10. Full documentation + tests
+6. Port core logic
+7. TCP networking
+8. REST API
+9. Dockerization
 
-## Testing
-Tests will live in `test/` and will include:
-* connection tests
-* broadcast behavior
-* command parsing
-* room handling
+### Phase C — UI
 
-Run (when available): `make test`
+10. Optional React interface
+11. Tests and full documentation
 
-## Contributing
-This is a learn-oriented project.
-If you want to contribute, please follow:
-* `standards.md` (commit style, formatting, guidelines)
-* Clean and documented C code
-* Small, focused pull requests
 
-## Project Status
-Day 1: repository created. Project currently in planning and environment setup stage.
+## Project Philosophy
+
+This is a **learning‑oriented project**.
+Design decisions are documented explicitly, and simplicity is preferred over premature optimization.
+
+See:
+
+* `docs/architecture.md`
+* `PROJECT_LOG.md`
+* `docs/standards.md`
