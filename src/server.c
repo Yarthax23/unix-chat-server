@@ -13,13 +13,11 @@ static Client clients[MAX_CLIENTS];
 static fd_set readfds;
 int max_fd;
 
-void init_clients(void)
+void clients_init(void)
 {
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
-        memset(&clients[i], 0, sizeof(Client));
-        clients[i].socket = -1;
-        clients[i].room_id = -1;
+        client_init(&clients[i]);
     }
 }
 
@@ -63,6 +61,7 @@ void start_server(const char *socket_path)
         exit(EXIT_FAILURE);
     }
 
+    clients_init();
     printf("[server] Waiting for connection...\n");
     while (1)
     {
@@ -152,10 +151,17 @@ int find_client_by_fd(int fd)
     return -1;
 }
 
+void client_init(Client *c)
+{
+    memset(c, 0, sizeof(*c));
+    c->socket  = -1;
+    c->room_id = -1;
+}
+
 void client_remove(int idx)
 {
-    close(clients[idx].socket);
-    clients[idx].socket = -1;
-    clients[idx].room_id = -1;
-    clients[idx].username[0] = '\0';
+    if (clients[idx].socket != -1){
+        close(clients[idx].socket);
+    }
+    client_init(&clients[idx]);
 }
