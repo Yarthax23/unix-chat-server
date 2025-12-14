@@ -1,3 +1,38 @@
+## 2025-12-14 –  Day Four
+### **Summary**
+
+...
+
+### **Decisions**
+
+* ...
+
+### **Added**
+
+* ...
+
+### **Changed**
+
+* ...
+
+### **Removed**
+
+* ...
+
+### **Learnings**
+
+* ...
+
+
+### **Next steps**
+
+* [ ] ...
+
+### **Notes**
+
+* ...
+
+
 ## 2025-12-13 –  Transition to Event-Driven Server Architecture
 ### **Summary**
 
