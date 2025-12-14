@@ -2,6 +2,7 @@
 
 
 int main(){
-    start_server(8080);
+    init_clients();
+    start_server("unix_socket");
 
 }
