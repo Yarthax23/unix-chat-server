@@ -7,119 +7,74 @@
 ## 1. Ideas de funcionalidades
 
 * Implementar salas
-* Pensar un pequeño protocolo
+* Diseñar un protocolo simple
 * Mini-juegos:
-
   * tirar dado/s
   * número secreto
   * consumidor/productor (lavarropas)
   * simular una pequeña sociedad
-* Futuro: Puedo hacer un chat parcial? Se me ocurría que los clientes puedan hacer brainstorm, y que el chat compartido se actualice in-sito (live) ordenado alfabéticamente y/o por popularidad sin borrar el texto anterior (al pedido de /brainstorm); quizás guardando las "ideas" en una lista que ordena con cada inserción, un árbol binario? trie? heap? Ésto tiene exploit? O simplemente abro un chat/sala nuevos para ese /brainstorm y hago clean/write cada vez (cliente tendría que tener 2 chats abiertos?)?
-* Futuro: migrar a Go
+* Futuro: 
+  * modo /brainstorm actualiza ordenando chat (a decidir)
+  * migrar a Go
 
 ---
 
 ## 2. Cosas para investigar
 
-* Convención de commits (https://www.conventionalcommits.org/es/v1.0.0-beta.3 ; https://github.com/KarmaPulse/git-commit-message-conventions ; https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
 * Frameworks de testing en C (CUnit, Unity, Criterion)
-* Explotación / seguridad básica
-* Concurrencia: varios clientes leyendo/escribiendo simultáneamente
-* “Graceful client disconnects”
-  * cómo detectar desconexión normal (`recv() == 0`)
-  * desconexión abrupta (`recv() < 0`, errno=ECONNRESET)
-  * remover del array/lista (reajustes/liberar mem)
-  * cerrar socket
-  * informar al resto (opcional) [server] user Juan disconnected
-  * no dejar FD inválidos en `select()`
-* Concurrency models & signals
-  * `select()` vs threads + mutex
-    - Single-threaded, event-driven
-    - Easier to maintain for small number of clients
-    - No mutex needed if carefully managing structures
-    - Limitations in scalability
-    vs
-    - Each client in separate thread
-    - Shared structures require mutex
-    - Risk of deadlocks, higher memory usage
-    - Conceptually similar to fork() but threads share memory
-  * fork() + copy-on-write
-    - Each client in a separate process
-    - Memory not shared (copy-on-write)
-    - Communication via sockets/pipes
-    - Less convenient for chat app
-  * señales y manejo de procesos (`exit()`, `wait()`, `signal()` deprecated, investigar `sigaction()`)
-  * epoll() (Linux, escalable)
-    - Scalable alternative to select()
-    - Efficient with many clients
-    - More complex to implement
+* Seguridad básica / hardening
+* Graceful client disconnects
+* Señales y manejo de procesos (`sigaction`: `signal` is deprecated)
+* `epoll` como alternativa escalable a `select`
 
 ---
 
 ## 3. Arquitectura futura
+Detailed and authoritative architecture diagrams live in /docs/architecture.md.
+This section tracks future diagram ideas only.
 
-(“Detailed architecture diagrams will live in /docs/” se refiere a esta sección)
+* ASCII diagrams are perfect for /docs/architecture.md v1 (many senior engineers do exactly that)
+    * Keep them conceptual
+    * Don’t try to be “pretty”
+    * One diagram per idea
+  * Later (much later), you can convert to Mermaid or draw.io if you want.
 
-### 3.1 Diagramas a crear
-
-* **Flujo cliente-servidor**
-* **Diagrama de componentes**
-
+### Diagramas pendientes
+* Flujo cliente-servidor
+* Diagrama de componentes
   * server.c
   * gestor de clientes
-  * gestor de salas
-  * dispatcher de mensajes
-  * parser del protocolo
-* **Secuencias**
+  * futuro: gestor de salas
+  * futuro: dispatcher de mensajes
+  * futuro: parser del protocolo
 
-  * cómo se procesa `/join`
-* **Especificación del protocolo**
-
+* Especificación formal del protocolo
   * formato de mensaje
   * comandos
   * errores
   * estados
-* **Decisiones técnicas**
-
-  * por qué `select()` y no threads
-  * cómo se gestiona memoria
-  * política de buffers
-
----
-
-## 4. Dudas
-
-* ¿Qué modelo de sincronización usar?
-
-  * A: `select()`
-  * B: threads + mutex
-    * ¿relación con `fork()`?
-    * señales vs `pthread_*`
-  * C: epoll (Linux)
-* Zonas críticas para acceso concurrente
+* Decisiones técnicas futuras
+  * buffers
+  * non-blocking I/O
+  * escalabilidad
 
 ---
 
-## 5. Roadmap
+## 4. Roadmap
 
 ### **Fase A — Base técnica en C**
 
-#### 1. Chat TCP simple
+#### 1. Chat con sockets stream simple
 
-* socket(), bind(), listen(), accept(), connect(), recv(), send()
-* soporte para múltiples clientes
-* `select()` o threads
+* [x] Chat con sockets stream
+* [x] soporte para múltiples clientes
+* [x] `select()` o threads
 * seguridad mínima (validación de input básica, whitelist)
 
 #### 2. Salas + comandos
 
+* [x] estructuras de datos (`Client`, lista dinámica, diccionario de salas)
 * sincronización
-* estructuras de datos (`Client`, lista dinámica, diccionario de salas)
-    * typedef struct {
-            int socket;
-            char username[32];
-            int room_id;
-        } Client
 * comandos (`/join`, `/rooms`, etc.)
 
 #### 3. Mini-juegos
@@ -129,11 +84,10 @@
 * /vote     (decisiones compartidas)
 * parser de comandos > if (buffer[0] == '/' )
 
----
 
 ### **Fase B — Migración a Go**
 
-4. Migrar lógica principal
+4. Migrar lógica principal (Chat TCP)
 5. Convertir en API REST
 6. Dockerizar (arrancar viendo tema de contenedores de Sistemas Operativos y su taller)
 7. Agregar auth básica
