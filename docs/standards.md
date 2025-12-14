@@ -78,3 +78,34 @@ DOCS       -> Si el proyecto crece
 -docs: → documentación
 -build: → cambios que afectan el sistema de build (Makefile, cabal, deps)
 -test: → agregaste/modificaste tests
+
+## C Module Design Rules
+1. **File‑Local Scope**
+    * Any variable or function used only within a single `.c` file **MUST** be declared `static`.
+
+2. **Explicit Shared State**
+    * All shared or long‑lived state **MUST** be grouped into explicit structures.
+    * Global variables are forbidden unless they represent immutable configuration.
+
+3. **Header File Discipline**
+    * Header files (`.h`) **MUST NOT** define storage or state — only types, macros, and function prototypes.
+    * Headers **MAY ONLY** contain:
+        * Type definitions
+        * Macros
+        * Function prototypes
+
+4. **Domain Ownership**
+    * Each conceptual domain owns its data structures (e.g., the server module defines `Client`).
+
+5. **Design Priority**
+    * Prefer **simple, functional, and correct** designs first.
+    * Flexibility, abstraction, and scalability are **secondary** concerns and should be introduced only when justified.
+
+6. **Security Boundary Clarity**
+    * Code **MUST NOT** rely on struct layout, padding, or field ordering for security.
+
+7. **Golden Networking Rule**
+    * Never assume one `recv` = one message, view protocol.
+
+8. **No Dead State**
+    * If a field has no consumer, it does not belong in the struct.
