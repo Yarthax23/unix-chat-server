@@ -119,35 +119,38 @@ Therefore, the protocol must define explicit framing.
 ### Framing strategy (current choice)
 
 **Delimiter-based protocol (****`\n`****)**
-
 * Message delimiter: `\n`
-    * Never parse past the first delimiter
-* Server buffers incoming data per-client
-    * Messages may arrive fragmented or coalesced
-    * Complete lines are extracted and processed - FIFO
-    * New bytes are only appended at `inbuf + inbuf_len`
+* Each client connection maintains an independent input buffer
+* Incoming data may be **fragmented** or **coalesced** arbitrarily by the transport
+* Messages are extracted and processed in FIFO order
+
+**Framing Invariants**
+* Parsing is strictly delimiter-driven; no data beyond the first delimiter is interpreted
+* New bytes are only appended at `inbuf + inbuf_len`
+* Complete messages are removed from the buffer after processing
 * Maximum message length: INBUF_SIZE - 1
-* Buffer overflow → disconnect (log error)
+
+**Message Properties**
+* Message payload is treated as opaque bytes 
+* Meaning is assigned later by protocol command parsing
+* Messages may contain arbitrary bytes except the delimiter (`\n`) 
+* Embedded NUL bytes are permitted but may truncate debug output
+
+**Line ending normalization**
+* `\n` is the sole message delimiter
+* If the byte immediately preceding `\n` is `\r`, it is stripped
+* This allows transparent handling of both LF and CRLF input
+
+**Error handling**
+* Buffer overflow (no limited within buffer capacity) → disconnect
+* `recv() == 0` (peer closed connection) → disconnect
 * Malformed command → disconnect
-* recv() == 0 → disconnect
 
 Benefits:
 
-* Simple implementation
-* Easy debugging with tools like `nc` or `socat`
-* Human-readable traffic
-
-**Accept CRLF, normalize to LF**
-
-* Treat `\n` as the delimiter
-* If the byte before is `\r`, strip it
-
-This gives:
-
-* Interoperability
-* No added complexity
-* Better learning value
-
+* Simple, deterministic implementation
+* Easy debugging with tools such as `nc` and `socat`
+* Human-readable protocol traffic
 
 ---
 
