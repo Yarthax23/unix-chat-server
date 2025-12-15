@@ -1,36 +1,45 @@
-## 2025-12-14 –  Day Four
-### **Summary**
+## 2025-12-14 –  Line-Based Framing and Robustness Testing
+### Summary
 
-...
+Implemented and validated newline-delimited stream framing for the UNIX socket server. Formalized buffer invariants, overflow handling, and disconnect-on-error policy. Manual adversarial testing with nc/socat confirmed correct behavior under fragmentation, coalescing, CRLF input, and oversized messages.
 
-### **Decisions**
+### Decisions
 
-* ...
+* Disconnect-on-error chosen to avoid state complexity in early protocol design.
+* Buffer overflow is logged server-side; client receives a generic disconnect.
 
-### **Added**
+### Added
 
-* ...
+* Implemented newline-delimited framing with per-client buffers.
 
-### **Changed**
+### Changed
 
-* ...
+* Added input buffer for the line-based protocol in the Client struct.
+* Factored client_init to prevent stale buffer reuse.
+* Clearer responsibilities, main is not responsible for client arrays (init), buffer invariants or socket internals.
 
-### **Removed**
+### Learnings
 
-* ...
+* GitHub Documentation on Commit Conventions and Changing a commit message (amend).
+* Protocol fundaments: CRLF and LF.
+    * Carriage Return (`\r`, 0x0D) + LF, used by Telnet, HTTP, SMTP, many network text protocols.
+    * Line Feed (`\n`, 0x0A), used by Unix/Linux line ending.
+* `signal-safety`, `attributes` and `mem*` functions man pages or documentation.
+* Testing manual framing validation with `nc` or `socat` (AF_UNIX), confirmed framing invariants.
 
-### **Learnings**
+### Next steps
 
-* ...
+* [ ] Define command grammar and semantics on top of the line-based protocol.
+* [ ] Implement command dispatch (handle_command) with explicit validation rules.
+* [ ] Decide on blocking model boundaries (what remains blocking, what may change later).
+* [ ] Introduce server-generated messages (server full, client disconnect).
+* [ ] Begin documenting protocol commands and error responses.
 
 
-### **Next steps**
+### Notes
 
-* [ ] ...
-
-### **Notes**
-
-* ...
+* Relative UNIX socket path bug discovered and fixed; absolute paths are now required.
+* Extensive manual testing with nc, socat, printf, and Python (-c 'print("")') confirmed framing behavior under edge cases (CRLF, embedded NULs, large payloads, missing delimiters, overflow).
 
 
 ## 2025-12-13 –  Transition to Event-Driven Server Architecture
@@ -64,7 +73,7 @@ Implemented a single‑process AF_UNIX stream server with safe static initializa
 ### **Changed**
 
 * Replaced port-based addressing with filesystem socket paths.
-* Consolidated server responsabilites into `server.c`, `server.h`.
+* Consolidated server responsibilites into `server.c`, `server.h`.
 
 ### **Removed**
 
@@ -99,13 +108,12 @@ Implemented a single‑process AF_UNIX stream server with safe static initializa
     * Stream sockets are byte streams; protocol framing (delimiter-based) will be implemented in a future milestone.
 * First practical uses of `git reset --soft` and `git commit --amend`.
 
-
 ### **Next steps**
 
 * [ ] Review blocking vs. non-blocking sockets behavior.
-* [ ] Define buffer sizing and message parsing strategy.
+* [x] Define buffer sizing and message parsing strategy.
 * [ ] Continue studying I/O multiplexing and concurrency models.
-* [ ] Prepare for protocol framing (deilimer-based).
+* [x] Prepare for protocol framing (deilimer-based).
 * [ ] Explore `epoll` theory.
 
 ### **Notes**
