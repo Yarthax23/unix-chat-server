@@ -1,3 +1,33 @@
+## 2025-12-16 –  Day Six
+### Summary
+
+...
+
+### Decisions
+
+* ...
+
+### Added
+
+* ...
+
+### Changed
+
+* ...
+
+### Learnings
+
+* ...
+
+### Next steps
+
+* [ ] ...
+
+### Notes
+
+* ...
+
+
 ## 2025-12-15 –  From Framing to Meaning: Command Grammar
 ### Summary
 
