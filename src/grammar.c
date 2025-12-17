@@ -25,11 +25,10 @@ static command_type parse_command(const char *msg,
                                   size_t len,
                                   const char **args,
                                   size_t *args_len);
-static void handle_nick(Client *c, const char *args, size_t args_len);
+static command_result handle_nick(Client *c, const char *args, size_t args_len);
 static void handle_join(Client *c, const char *args, size_t args_len);
 static void handle_leave(Client *c, const char *args, size_t args_len);
 static void handle_msg(Client *c, const char *args, size_t args_len);
-
 
 command_result handle_command(Client *c, const char *msg, size_t len)
 {
@@ -38,10 +37,10 @@ command_result handle_command(Client *c, const char *msg, size_t len)
 
     command_type cmd = parse_command(msg, len, &args, &args_len);
 
-    switch (cmd) {
+    switch (cmd)
+    {
     case CMD_NICK:
-        handle_nick(c, args, args_len);
-        break;
+        return handle_nick(c, args, args_len);
     case CMD_JOIN:
         handle_join(c, args, args_len);
         break;
@@ -53,14 +52,14 @@ command_result handle_command(Client *c, const char *msg, size_t len)
         break;
     case CMD_QUIT:
     default:
-        return CMD_DISCONNECT;    
+        return CMD_DISCONNECT;
     }
 
     return CMD_OK;
 }
 
 static command_type parse_command(const char *msg, size_t len,
-                           const char **args, size_t *args_len)
+                                  const char **args, size_t *args_len)
 {
     *args = NULL;
     *args_len = 0;
@@ -88,12 +87,31 @@ static command_type parse_command(const char *msg, size_t len,
     return CMD_INVALID;
 }
 
-static void handle_nick(Client *c, const char *args, size_t args_len){
-};
-static void handle_join(Client *c, const char *args, size_t args_len){
-};
-static void handle_leave(Client *c, const char *args, size_t args_len){
-};
-static void handle_msg(Client *c, const char *args, size_t args_len){
-};
+static command_result handle_nick(Client *c, const char *args, size_t args_len)
+{
+    // Missing argument
+    if (!args)
+        goto error;
 
+    // Too long
+    if (args_len >= USERNAME_MAX)
+        goto error;
+
+    // Contains spaces
+    if (memchr(args, ' ', args_len))
+        goto error;
+
+    memcpy(c->username, args, args_len);
+    c->username[args_len] = '\0';
+    return CMD_OK;
+
+error:
+    return CMD_DISCONNECT;
+}
+
+static void handle_join(Client *c, const char *args, size_t args_len) {
+};
+static void handle_leave(Client *c, const char *args, size_t args_len) {
+};
+static void handle_msg(Client *c, const char *args, size_t args_len) {
+};
