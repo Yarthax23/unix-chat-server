@@ -13,8 +13,14 @@ typedef enum
     CMD_INVALID
 } command_type;
 
+typedef enum
+{
+    CMD_OK,
+    CMD_DISCONNECT
+} command_result;
+
 struct Client;
-void handle_command(struct Client *c, const char *msg, size_t len);
+command_result handle_command(struct Client *c, const char *msg, size_t len);
 
 
 

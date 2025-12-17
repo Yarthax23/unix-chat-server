@@ -112,3 +112,7 @@ DOCS       -> Si el proyecto crece
 
 9. **Prototype Functions**
     * Every function declaration must fully specify its parameters. No exceptions.
+
+10. **Object Lifetime Safety**
+    Never remove or invalidate an object while still executing code that assumes it exists.
+    In event-driven systems, signal intent (e.g., disconnect) and perform teardown only at safe boundaries.

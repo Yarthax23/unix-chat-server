@@ -31,7 +31,7 @@ static void handle_leave(Client *c, const char *args, size_t args_len);
 static void handle_msg(Client *c, const char *args, size_t args_len);
 
 
-void handle_command(Client *c, const char *msg, size_t len)
+command_result handle_command(Client *c, const char *msg, size_t len)
 {
     const char *args;
     size_t args_len;
@@ -52,17 +52,18 @@ void handle_command(Client *c, const char *msg, size_t len)
         handle_msg(c, args, args_len);
         break;
     case CMD_QUIT:
-        client_remove(c);
-        break;
     default:
-        client_remove(c);
-        break;
+        return CMD_DISCONNECT;    
     }
+
+    return CMD_OK;
 }
 
 static command_type parse_command(const char *msg, size_t len,
                            const char **args, size_t *args_len)
 {
+    *args = NULL;
+    *args_len = 0;
     // Extract command token
     const char *space = memchr(msg, ' ', len);
     size_t cmd_len = space ? (size_t)(space - msg) : len;
@@ -78,30 +79,21 @@ static command_type parse_command(const char *msg, size_t len,
             if (space)
             {
                 *args = space + 1;
-                *args_len = len - cmd_len + 1;
+                *args_len = len - (cmd_len + 1);
             }
-            else
-            {
-                *args = NULL;
-                *args_len = 0;
-            }
+            return spec->type;
         }
-        return spec->type;
     }
 
     return CMD_INVALID;
 }
 
 static void handle_nick(Client *c, const char *args, size_t args_len){
-    client_remove(c);
 };
 static void handle_join(Client *c, const char *args, size_t args_len){
-    client_remove(c);
 };
 static void handle_leave(Client *c, const char *args, size_t args_len){
-    client_remove(c);
 };
 static void handle_msg(Client *c, const char *args, size_t args_len){
-    client_remove(c);
 };
 

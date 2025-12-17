@@ -1,4 +1,6 @@
 #include "server.h"     // start_server
+#include "grammar.h"    // handle_command
+
 #include <stdio.h>      // printf
 #include <stdlib.h>     // EXIT tags
 #include <string.h>     // memset, strlen
@@ -85,7 +87,7 @@ void start_server(const char *socket_path)
         {
             perror("select");
             // Allows control and cleanup
-            break; 
+            break;
         }
 
         //  New Client
@@ -155,8 +157,12 @@ void start_server(const char *socket_path)
                         memcpy(msg, clients[i].inbuf, msg_len);
                         msg[msg_len] = '\0';
 
-                        // Process msg (next step) → handle_command(client, message, length);
+                        // Process msg
                         printf("[server] Client %d says: %s\n", i, msg);
+                        if (handle_command(&clients[i], msg, msg_len) == CMD_DISCONNECT){
+                            client_remove(&clients[i]);
+                            continue;
+                        };
 
                         // Remove processed bytes (+1 for '\n')
                         size_t remaining = clients[i].inbuf_len - (nl - clients[i].inbuf + 1);
