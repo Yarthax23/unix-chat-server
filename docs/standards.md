@@ -88,11 +88,8 @@ DOCS       -> Si el proyecto crece
     * Global variables are forbidden unless they represent immutable configuration.
 
 3. **Header File Discipline**
-    * Header files (`.h`) **MUST NOT** define storage or state — only types, macros, and function prototypes.
-    * Headers **MAY ONLY** contain:
-        * Type definitions
-        * Macros
-        * Function prototypes
+    * Header files (`.h`) define contracts, not conveniences.
+    * Headers **MUST NOT** define storage or state — only types, macros, and function prototypes.
 
 4. **Domain Ownership**
     * Each conceptual domain owns its data structures (e.g., the server module defines `Client`).
@@ -113,6 +110,22 @@ DOCS       -> Si el proyecto crece
 9. **Prototype Functions**
     * Every function declaration must fully specify its parameters. No exceptions.
 
+## Event-Driven & Lifetime Rules
 10. **Object Lifetime Safety**
-    Never remove or invalidate an object while still executing code that assumes it exists.
-    In event-driven systems, signal intent (e.g., disconnect) and perform teardown only at safe boundaries.
+    * Never remove or invalidate an object while still executing code that assumes it exists.
+    * In event-driven systems, signal intent (e.g., disconnect) and perform teardown only at safe boundaries.
+    * Object lifetime is owned by the layer that created and manages the object.
+
+## Protocol & Grammar Design Rules
+11. **Grammar Purity**
+    Grammar code **MUST** be read-only over framed message bytes.
+    It **MUST NOT** mutate connection lifetime or perform teardown.
+
+12. **Fail-Fast Validation**
+    Validate one invariant per check and fail immediately on violation.
+    Large compound conditionals are discouraged.
+
+13. **Specification Before Implementation**
+    Observable behavior **MUST** be specified and documented before implementation begins.
+    Do not introduce new protocol behavior while still implementing its specification.
+
