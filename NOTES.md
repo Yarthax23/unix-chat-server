@@ -4,9 +4,10 @@
 
 ---
 
-## 1. Ideas de funcionalidades
+## 1. Ideas
 
 * Design a simple protocol
+* Set a default username: Client i: pass index into client_init
 * Implement rooms
 * Mini-games / commands:
   * /roll dice
@@ -38,6 +39,7 @@ Detailed and authoritative architecture diagrams live in `/docs/architecture.md`
   * Don’t try to be “pretty”
   * One diagram per idea
   * Later (much later), migrate to Mermaid or draw.io if desired.
+  * See https://www.geeksforgeeks.org/c/socket-programming-cc/ for future reference ideas on diagramming.
 
 ### Pending Diagrams
 * Client-server flow
@@ -57,17 +59,17 @@ Detailed and authoritative architecture diagrams live in `/docs/architecture.md`
   * non-blocking I/O
   * scalability
 
-                          ### Future protocol improvements
+### Future protocol improvements
 
-                          * Server-to-client informational messages:
-                            * server full
-                            * client joined / left
-                          * Distinguish broadcast vs client-directed messages
-                            * This is intentionally deferred to avoid protocol complexity during initial framing work.
-                          * In network-facing servers:
-                            * log details server-side
-                            * send generic errors client-side
-                          * Semantic / Command Handler
+* Server-to-client informational messages:
+  * server full
+  * client joined / left
+* Distinguish broadcast vs client-directed messages
+  * This is intentionally deferred to avoid protocol complexity during initial framing work.
+* In network-facing servers:
+  * log details server-side
+  * send generic errors client-side
+* Semantic / Command Handler
   
 
 ---
