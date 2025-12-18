@@ -8,6 +8,17 @@
 
 * Set a default username: Client i: pass index into client_init
 
+Layer 1 — Framing
+* Bytes → messages
+
+Layer 2 — Grammar
+* Messages → intent
+
+Layer 3 — Execution
+* Intent → side effects
+
+Broadcasting lives in Layer 3 (delegated to future room module).
+
 ---
 
 ## 2. Things to Research

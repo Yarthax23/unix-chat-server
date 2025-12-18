@@ -40,15 +40,20 @@ The design prioritizes **simplicity, correctness, and explicit state management*
 ```
 
 ### Dependencies
-+-------------------------------+
-|   server.c                    |
-|   ├── owns Client (state)     |
-|   └── calls grammar           |
-|                               |
-|   grammar.c                   |
-|   ├── interprets messages     |
-|   └── acts on Client          |
-+-------------------------------+
++-----------------------------------+
+|   server.c                        |
+|   ├── owns Client state           |
+|   ├── owns sockets                |
+|   ├── owns event loop             |
+|   ├── owns broadcast_message()    |
+|   └── calls grammar               |
+|                                   |
+|   grammar.c                       |
+|   ├── parses messages             |
+|   ├── validates arguments         |
+|   ├── returns intent              |
+|   └── NEVER performs I/O          |
++-----------------------------------+
 
 ---
 
