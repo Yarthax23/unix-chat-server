@@ -28,7 +28,7 @@ static command_type parse_command(const char *msg,
                                   size_t *args_len);
 static command_result handle_nick(Client *c, const char *args, size_t args_len);
 static command_result handle_join(Client *c, const char *args, size_t args_len);
-static void handle_leave(Client *c, const char *args, size_t args_len);
+static command_result handle_leave(Client *c, const char *args, size_t args_len);
 static void handle_msg(Client *c, const char *args, size_t args_len);
 
 command_result handle_command(Client *c, const char *msg, size_t len)
@@ -45,8 +45,7 @@ command_result handle_command(Client *c, const char *msg, size_t len)
     case CMD_JOIN:
         return handle_join(c, args, args_len);
     case CMD_LEAVE:
-        handle_leave(c, args, args_len);
-        break;
+        return handle_leave(c, args, args_len);
     case CMD_MSG:
         handle_msg(c, args, args_len);
         break;
@@ -152,7 +151,16 @@ static command_result handle_join(Client *c, const char *args, size_t args_len)
 error:
     return CMD_DISCONNECT;
 };
-static void handle_leave(Client *c, const char *args, size_t args_len) {
+static command_result handle_leave(Client *c, const char *args, size_t args_len)
+{
+    // Extra arguments
+    if (args || args_len)
+        goto error;
+
+    c->room_id = -1;
+    return CMD_OK;
+error:
+    return CMD_DISCONNECT;
 };
 static void handle_msg(Client *c, const char *args, size_t args_len) {
 };
