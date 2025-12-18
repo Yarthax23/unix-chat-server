@@ -4,6 +4,9 @@ bin/
 *.out
 *.exe
 
+./screenshots
+*.png
+
 # Debug
 *.dSYM/
 .gdb*
