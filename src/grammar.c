@@ -159,6 +159,10 @@ static command_result handle_leave(Client *c, const char *args, size_t args_len)
     if (args || args_len)
         goto error;
 
+    if (c->room_id == -1)
+        // Already in no-room
+        return CMD_OK;
+        
     c->room_id = -1;
     return CMD_OK;
 error:
