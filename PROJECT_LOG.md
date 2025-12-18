@@ -1,31 +1,36 @@
-## 2025-12-16 –  Day Seven
+## 2025-12-17 – JOIN Command Implementation
 ### Summary
 
-...
+Implemented the `JOIN` command under the established grammar rules.
+Focused on strict numeric argument validation (`strtol`), overflow handling,
+and enforcing disconnect-on-error semantics as defined by the protocol.
 
 ### Decisions
 
-* ...
+* Apply previously established grammar invariants to `JOIN`.
+* Use `strtol` with explicit `errno` and end-pointer checks for numeric parsing.
+* Treat partially valid input (e.g. `123abc`) as a grammar violation.
 
 ### Added
 
-* ...
+* `JOIN` command handler with strict argument validation.
+* Numeric parsing logic with overflow and non-numeric detection.
 
 ### Changed
 
-* ...
+* Grammar dispatch extended to include `JOIN`.
 
 ### Learnings
 
-* ...
+* `strtol` is safe only when:
+  * `errno` is checked for overflow
+  * the end pointer consumes the full argument
+* Numeric parsing bugs are easy to introduce when validation is implicit.
 
 ### Next steps
 
-* [] ...
-
-### Notes
-
-* ...
+* [ ] Implement `LEAVE`
+* [ ] Implement `MSG`
 
 
 ## 2025-12-16 –  Grammar Implementation and Lifecycle Corrections
