@@ -93,6 +93,10 @@ static command_result handle_nick(Client *c, const char *args, size_t args_len)
     if (!args)
         goto error;
 
+    // Empty argument
+    if (!args_len)
+        goto error;
+
     // Too long
     if (args_len >= USERNAME_MAX)
         goto error;
@@ -113,6 +117,10 @@ static command_result handle_join(Client *c, const char *args, size_t args_len)
 {
     // Missing argument
     if (!args)
+        goto error;
+
+    // Empty argument
+    if (!args_len)
         goto error;
 
     char buf[32];
