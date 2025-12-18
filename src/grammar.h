@@ -16,7 +16,8 @@ typedef enum
 typedef enum
 {
     CMD_OK,
-    CMD_DISCONNECT
+    CMD_DISCONNECT,
+    CMD_BROADCAST
 } command_result;
 
 struct Client;

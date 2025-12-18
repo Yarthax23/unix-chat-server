@@ -2,6 +2,7 @@
 #include "server.h" // Client
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h> // EXIT
 #include <string.h> // mem*, str*
 
@@ -29,7 +30,7 @@ static command_type parse_command(const char *msg,
 static command_result handle_nick(Client *c, const char *args, size_t args_len);
 static command_result handle_join(Client *c, const char *args, size_t args_len);
 static command_result handle_leave(Client *c, const char *args, size_t args_len);
-static void handle_msg(Client *c, const char *args, size_t args_len);
+static command_result handle_msg(Client *c, const char *args, size_t args_len);
 
 command_result handle_command(Client *c, const char *msg, size_t len)
 {
@@ -47,13 +48,13 @@ command_result handle_command(Client *c, const char *msg, size_t len)
     case CMD_LEAVE:
         return handle_leave(c, args, args_len);
     case CMD_MSG:
-        handle_msg(c, args, args_len);
-        break;
+        return handle_msg(c, args, args_len);
     case CMD_QUIT:
     default:
         return CMD_DISCONNECT;
     }
 
+    // Unreachable, documents intent
     return CMD_OK;
 }
 
@@ -151,6 +152,7 @@ static command_result handle_join(Client *c, const char *args, size_t args_len)
 error:
     return CMD_DISCONNECT;
 };
+
 static command_result handle_leave(Client *c, const char *args, size_t args_len)
 {
     // Extra arguments
@@ -162,5 +164,19 @@ static command_result handle_leave(Client *c, const char *args, size_t args_len)
 error:
     return CMD_DISCONNECT;
 };
-static void handle_msg(Client *c, const char *args, size_t args_len) {
+
+static command_result handle_msg(Client *c, const char *args, size_t args_len)
+{
+    // Not in a room
+    if (c->room_id < 0)
+        goto error;
+
+    // Missing payload
+    if (!args)
+        goto error;
+
+    (void)args_len;
+    return CMD_BROADCAST;
+error:
+    return CMD_DISCONNECT;
 };
