@@ -18,6 +18,7 @@ The project incrementally builds a multi‑client chat server, prioritizing corr
 * Explicit command grammmar
 * Strict validation and disconnect-on-violation policy
 * Architecture, standards, and design documentation
+* Command grammar with intent-based execution model
 
 > TCP support and Go migration are intentionally deferred to a later phase.
 

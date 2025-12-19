@@ -55,6 +55,8 @@ The design prioritizes **simplicity, correctness, and explicit state management*
 |   └── NEVER performs I/O          |
 +-----------------------------------+
 
+* Grammar returns validated intent; the server applies state changes and broadcasts.
+
 ---
 
 ## Concurrency Model
@@ -324,6 +326,22 @@ Printf-based messages:
 
 All observable behavior must flow through the protocol and
 be delivered via explicit server-managed broadcast paths.
+
+**Grammar MAY mutate**
+* username
+* grammar-local flags
+* temporary metadata used only for validation or intent construction
+
+**Grammar MUST NOT mutate**
+* room membership (authoritative state)
+* socket state
+* client lifetime
+* input/output buffers
+* global structures
+
+* `command_action` does not mirror `Client`.
+
+It carries just enough information for the server to execute intent safely and in order.
 
 ---
 

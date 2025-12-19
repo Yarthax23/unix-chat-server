@@ -1,35 +1,85 @@
-## 2025-12-18 – Day Eight
+## 2025-12-18 – Intent-Based Command Execution Refactor
 ### Summary
 
-...
+Completed all grammar-level protocol commands and refactored the command execution model to enforce a strict separation between intent extraction and side effects.
+
+Grammar is now purely declarative, while the server is authoritative over state mutation and broadcasting.
+
+**Milestone:** All grammar commands are implemented, validated, and stable.
 
 ### Decisions
 
-* ...
+* Introduced an explicit `command_action` intent object to decouple grammar from execution.
+* Unused `.room_id` fields in `command_action` are set to `-1` to avoid ambiguity (`Room 0` is valid).
+* Grammar returns intent + context only; the server applies mutations and enforces reordering.
 
 ### Added
 
-* ...
+* Completed documentation for the `JOIN` command.
+* `LEAVE` command handler with strict argument validation.
+* `MSG` command handler with strict argument validation.
+* `command_action` struct to represent validated protocol intent.
+* Helper constructors (`action_*`) for semantic, self-documenting intent creation.
 
 ### Changed
 
-* ...
+* Replaced `command_result` into `command_action` for clarity and extensibility.
+    * `room_id` represents transition context, not "where to broadcast".
+        * Grammar describes intent.
+        * Transition context is explicit.
+        * Server applies mutation.
+    * Payload lifetime are explictly defined.
+        * Payload remains opaque bytes.
+        * Must remain valid until the server consumes it.
+* Refactored all `handle_*` functions.
+    * Removed side effects and state mutation.
+    * Grammar now performs syntax validation only.
+* Updated `server.c` to:
+    * Interpret intent objects.
+    * Mutate authoritative state.
+    * Execute room-scoped broadcasts accordingly.
+* Renamed and evolved `broadcast_message` to `broadcast_room` for explicit room scoping.
+* Client initialization now assigns a default username.
 
 ### Removed
 
-* ...
+* Unused `find_client_by_fd` helper.
 
 ### Learnings
 
-* ...
+* Idiomatic C intent objects use `static inline` constructors.
+    * File-local.
+    * Zero call overhead.
+    * Semantic and readable.
+    * No ABI exposure.
+* Compound literals guarantee zero-initialization of unused fields.
+    * Fields in `command_action` are context, not a mirror of `Client` state.
+* Separating intents from execution simplifies reasoning about:
+    * Object lifetimes
+    * Mutation ordering
+    * Future features (e.g. nick-change broadcasts)
 
 ### Next steps
 
-* [] ...
+* [ ] Decide which server-generated messages are part of the protocol surface
+* [ ] Specify join / leave notification semantics (wording, scope, ordering)
+* [ ] Implement once semantics are finalized
 
 ### Notes
 
-* ...
+* Validation strategy:
+    * Presence-forbidden commands use combined check ("must be absent").
+        * Reads as one invariant.
+        * Best for commands that forbid arguments.
+    * Presence-required commands use split checks ("must exist").
+        * Each failure has a clear semantic meaning.
+        * Better for later-use: different error handling.
+* `grammar.c` never performs side effects.
+    * It does not send data, close sockets, mutate global state, or broadcast.
+    * It only parses input and returns intent.
+* Broadcasts target the room where the event is observed, not the room the client ends up in.
+* Join/leave notifications have been intentionally deferred until the execution model and intent boundaries stabilized. With `command_action` in place, this feature is now unblocked but still pending semantic specification.
+
 
 
 ## 2025-12-17 – JOIN Command Implementation
@@ -63,8 +113,8 @@ and enforcing disconnect-on-error semantics as defined by the protocol.
 
 ### Next steps
 
-* [ ] Implement `LEAVE`
-* [ ] Implement `MSG`
+* [x] Implement `LEAVE`
+* [x] Implement `MSG`
 
 
 ## 2025-12-16 –  Grammar Implementation and Lifecycle Corrections
@@ -115,9 +165,9 @@ Implemented the first protocol command (`NICK`) following the previously defined
 
 ### Next steps
 
-* [] Implement remaining protocol commands (`JOIN`, `LEAVE`, `MSG`, `QUIT`)
-* [] Add basic server-generated messages (join/leave notifications)
-* [] Expand manual protocol testing for all commands
+* [x] Implement remaining protocol commands (`JOIN`, `LEAVE`, `MSG`, `QUIT`)
+* [ ] Add basic server-generated messages (join/leave notifications)
+* [ ] Expand manual protocol testing for all commands
 
 ### Notes
 
@@ -167,7 +217,7 @@ No implementation was started today; the focus was on architectural clarity and 
 
 ### Next steps
 
-* [ ] Implement `handle_command()` with strict validation and explicit disconnect paths.
+* [x] Implement `handle_command()` with strict validation and explicit disconnect paths.
 * [ ] Add basic server-generated messages (join/leave notifications).
 * [ ] Write targeted tests using `nc`/`socat` for each command and failure mode.
 
