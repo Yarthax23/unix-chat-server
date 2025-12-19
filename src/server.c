@@ -95,6 +95,11 @@ void start_server(const char *socket_path)
             else
             {
                 clients[idx].socket = accept(server_socket, NULL, NULL);
+                if (clients[idx].socket == -1)
+                {
+                    perror("accept");
+                    continue;
+                };
             }
         }
 
@@ -102,90 +107,91 @@ void start_server(const char *socket_path)
         for (int i = 0; i < MAX_CLIENTS; i++)
         {
             Client *c = &clients[i];
-            
-            int fd = c->socket;
-            if (fd != -1 && FD_ISSET(fd, &readfds))
+
+            // Slot unused/inactive
+            if (c->socket == -1)
+                continue;
+
+            if (!FD_ISSET(c->socket, &readfds))
+                continue;
+
+            ssize_t n = recv(c->socket,
+                             c->inbuf + c->inbuf_len,
+                             INBUF_SIZE - c->inbuf_len,
+                             0);
+                             
+            // Client closed or error
+            if (n <= 0)
             {
-                ssize_t n = recv(fd,
-                                 c->inbuf + c->inbuf_len,
-                                 INBUF_SIZE - c->inbuf_len,
-                                 0);
-                if (n <= 0)
+                if (n < 0)
+                    perror("recv");
+                client_remove(c);
+                continue;
+            }
+
+            // Handle client
+            c->inbuf_len += n;
+
+            // Overflow check
+            if (c->inbuf_len == INBUF_SIZE)
+            {
+                if (!memchr(c->inbuf, '\n', c->inbuf_len))
                 {
-                    // Client closed or error
-                    if (n < 0)
-                        perror("recv");
+                    fprintf(stderr, "[server] Client %d buffer overflow\n", i);
                     client_remove(c);
                     continue;
                 }
-                else
+            }
+
+            // Parsing
+            while (1)
+            {
+                char *nl = (char *)memchr(c->inbuf, '\n', c->inbuf_len);
+                if (!nl)
+                    break;
+
+                size_t msg_len = (size_t)(nl - c->inbuf);
+
+                // Strip CR if present
+                if (msg_len > 0 && c->inbuf[msg_len - 1] == '\r')
+                    msg_len--;
+
+                // Extract msg & make it null-terminated for convenience
+                char msg[INBUF_SIZE];
+                memcpy(msg, c->inbuf, msg_len);
+                msg[msg_len] = '\0';
+
+                // Process msg
+                printf("[server] Client %d says: %s\n", i, msg);
+                int old_room = c->room_id;
+                command_result res = handle_command(c, msg, msg_len);
+
+                switch (res)
                 {
-                    // Handle client
-                    c->inbuf_len += n;
+                case CMD_DISCONNECT:
+                    client_remove(c);
+                    broadcast_leave(old_room, c);
+                    goto next_client;
 
-                    // Overflow check
-                    if (c->inbuf_len == INBUF_SIZE)
-                    {
-                        if (!memchr(c->inbuf, '\n', c->inbuf_len))
-                        {
-                            fprintf(stderr, "[server] Client %d buffer overflow\n", i);
-                            client_remove(c);
-                            continue;
-                        }
-                    }
+                case CMD_JOIN_ROOM:
+                    broadcast_join(c->room_id, c);
+                    break;
 
-                    // Parsing
-                    while (1)
-                    {
-                        char *nl = (char *)memchr(c->inbuf, '\n', c->inbuf_len);
-                        if (!nl)
-                            break;
+                case CMD_LEAVE_ROOM:
+                    broadcast_leave(old_room, c);
+                    break;
 
-                        size_t msg_len = (size_t)(nl - c->inbuf);
-
-                        // Strip CR if present
-                        if (msg_len > 0 && c->inbuf[msg_len - 1] == '\r')
-                            msg_len--;
-
-                        // Extract msg & make it null-terminated for convenience
-                        char msg[INBUF_SIZE];
-                        memcpy(msg, c->inbuf, msg_len);
-                        msg[msg_len] = '\0';
-
-                        // Process msg
-                        printf("[server] Client %d says: %s\n", i, msg);
-                        int old_room = c->room_id;
-                        command_result res = handle_command(c, msg, msg_len);
-
-                        switch (res)
-                        {
-                        case CMD_DISCONNECT:
-                            client_remove(c);
-                            broadcast_leave(old_room, c);
-                            goto next_client;
-
-                        case CMD_JOIN_ROOM:
-                            broadcast_join(c->room_id, c);
-                            break;
-
-                        case CMD_LEAVE_ROOM:
-                            broadcast_leave(old_room, c);
-                            break;
-
-                        case CMD_BROADCAST_MSG:
-                            broadcast_room(c->room_id, c, msg, msg_len);
-                            break;
-                        }
-
-                        // Remove processed bytes (+1 for '\n')
-                        size_t remaining = c->inbuf_len - (nl - c->inbuf + 1);
-                        memmove(c->inbuf, nl + 1, remaining);
-                        c->inbuf_len = remaining;
-                    }
-                next_client:
+                case CMD_BROADCAST_MSG:
+                    broadcast_room(c->room_id, c, msg, msg_len);
                     break;
                 }
+
+                // Remove processed bytes (+1 for '\n')
+                size_t remaining = c->inbuf_len - (nl - c->inbuf + 1);
+                memmove(c->inbuf, nl + 1, remaining);
+                c->inbuf_len = remaining;
             }
+        next_client:
         }
     }
 
