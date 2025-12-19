@@ -101,33 +101,35 @@ void start_server(const char *socket_path)
         //  Existing Client sends data
         for (int i = 0; i < MAX_CLIENTS; i++)
         {
-            int fd = clients[i].socket;
+            Client *c = &clients[i];
+            
+            int fd = c->socket;
             if (fd != -1 && FD_ISSET(fd, &readfds))
             {
                 ssize_t n = recv(fd,
-                                 clients[i].inbuf + clients[i].inbuf_len,
-                                 INBUF_SIZE - clients[i].inbuf_len,
+                                 c->inbuf + c->inbuf_len,
+                                 INBUF_SIZE - c->inbuf_len,
                                  0);
                 if (n <= 0)
                 {
                     // Client closed or error
                     if (n < 0)
                         perror("recv");
-                    client_remove(&clients[i]);
+                    client_remove(c);
                     continue;
                 }
                 else
                 {
                     // Handle client
-                    clients[i].inbuf_len += n;
+                    c->inbuf_len += n;
 
                     // Overflow check
-                    if (clients[i].inbuf_len == INBUF_SIZE)
+                    if (c->inbuf_len == INBUF_SIZE)
                     {
-                        if (!memchr(clients[i].inbuf, '\n', clients[i].inbuf_len))
+                        if (!memchr(c->inbuf, '\n', c->inbuf_len))
                         {
                             fprintf(stderr, "[server] Client %d buffer overflow\n", i);
-                            client_remove(&clients[i]);
+                            client_remove(c);
                             continue;
                         }
                     }
@@ -135,50 +137,50 @@ void start_server(const char *socket_path)
                     // Parsing
                     while (1)
                     {
-                        char *nl = (char *)memchr(clients[i].inbuf, '\n', clients[i].inbuf_len);
+                        char *nl = (char *)memchr(c->inbuf, '\n', c->inbuf_len);
                         if (!nl)
                             break;
 
-                        size_t msg_len = (size_t)(nl - clients[i].inbuf);
+                        size_t msg_len = (size_t)(nl - c->inbuf);
 
                         // Strip CR if present
-                        if (msg_len > 0 && clients[i].inbuf[msg_len - 1] == '\r')
+                        if (msg_len > 0 && c->inbuf[msg_len - 1] == '\r')
                             msg_len--;
 
                         // Extract msg & make it null-terminated for convenience
                         char msg[INBUF_SIZE];
-                        memcpy(msg, clients[i].inbuf, msg_len);
+                        memcpy(msg, c->inbuf, msg_len);
                         msg[msg_len] = '\0';
 
                         // Process msg
                         printf("[server] Client %d says: %s\n", i, msg);
-                        int old_room = clients[i].room_id;
-                        command_result res = handle_command(&clients[i], msg, msg_len);
+                        int old_room = c->room_id;
+                        command_result res = handle_command(c, msg, msg_len);
 
                         switch (res)
                         {
                         case CMD_DISCONNECT:
-                            client_remove(&clients[i]);
-                            broadcast_leave(old_room, &clients[i]);
+                            client_remove(c);
+                            broadcast_leave(old_room, c);
                             goto next_client;
 
                         case CMD_JOIN_ROOM:
-                            broadcast_join(clients[i].room_id, &clients[i]);
+                            broadcast_join(c->room_id, c);
                             break;
 
                         case CMD_LEAVE_ROOM:
-                            broadcast_leave(old_room, &clients[i]);
+                            broadcast_leave(old_room, c);
                             break;
 
                         case CMD_BROADCAST_MSG:
-                            broadcast_room(clients[i].room_id, &clients[i], msg, msg_len);
+                            broadcast_room(c->room_id, c, msg, msg_len);
                             break;
                         }
 
                         // Remove processed bytes (+1 for '\n')
-                        size_t remaining = clients[i].inbuf_len - (nl - clients[i].inbuf + 1);
-                        memmove(clients[i].inbuf, nl + 1, remaining);
-                        clients[i].inbuf_len = remaining;
+                        size_t remaining = c->inbuf_len - (nl - c->inbuf + 1);
+                        memmove(c->inbuf, nl + 1, remaining);
+                        c->inbuf_len = remaining;
                     }
                 next_client:
                     break;
