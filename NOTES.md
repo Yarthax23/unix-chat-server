@@ -6,8 +6,6 @@
 
 ## 1. Ideas
 
-* Set a default username: Client i: pass index into client_init
-
 Layer 1 — Framing
 * Bytes → messages
 
@@ -18,6 +16,10 @@ Layer 3 — Execution
 * Intent → side effects
 
 Broadcasting lives in Layer 3 (delegated to future room module).
+
+* Give client a minimum set of chances to get the command right.
+  * Give a help response on command usage or suggestions after trying some times.
+  * Implement a HELP cmd to list all commmand usages.
 
 ---
 
