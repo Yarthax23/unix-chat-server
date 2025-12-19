@@ -1,3 +1,37 @@
+## 2025-12-19 – Day Nine
+### Summary
+
+...
+
+### Decisions
+
+* ...
+
+### Added
+
+* ...
+
+### Changed
+
+* ...
+
+### Removed
+
+* ...
+
+### Learnings
+
+* ...
+
+### Next steps
+
+* [ ] ...
+
+### Notes
+
+* ...
+
+
 ## 2025-12-18 – Intent-Based Command Execution Refactor
 ### Summary
 
@@ -79,7 +113,6 @@ Grammar is now purely declarative, while the server is authoritative over state 
     * It only parses input and returns intent.
 * Broadcasts target the room where the event is observed, not the room the client ends up in.
 * Join/leave notifications have been intentionally deferred until the execution model and intent boundaries stabilized. With `command_action` in place, this feature is now unblocked but still pending semantic specification.
-
 
 
 ## 2025-12-17 – JOIN Command Implementation
