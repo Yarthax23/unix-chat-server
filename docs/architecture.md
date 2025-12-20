@@ -40,6 +40,7 @@ The design prioritizes **simplicity, correctness, and explicit state management*
 ```
 
 ### Dependencies
+```
 +-----------------------------------+
 |   server.c                        |
 |   ├── owns Client state           |
@@ -54,6 +55,7 @@ The design prioritizes **simplicity, correctness, and explicit state management*
 |   ├── returns intent              |
 |   └── NEVER performs I/O          |
 +-----------------------------------+
+```
 
 * Grammar returns validated intent; the server applies state changes and broadcasts.
 
@@ -197,90 +199,108 @@ These are intentionally deferred until a clear need arises.
 * `<command> [<arg> ...]`
 * Fields are separated by single spaces (`0x20`)
 * No quoting or escaping
-* Trailing spaces are not allowed
+* Trailing spaces are invalid
 * Empty lines are invalid
 
 **Responsibilities**
-* Validate syntax
-* Interpret meaning (semantics)
-* Trigger state changes
-* Disconnect on error
+* Validate syntax and arguments
+* Interpret semantics
+* Emit intent (`command_action`)
+* Signal disconnect on error
 
 **Characteristics**
 * Read-only over message bytes
 * No buffer mutation
+* No I/O
 * No memory ownership
-* No copying unless needed
 * No delimiter handling
 
 Trying to "reuse" framing extraction logic for grammar parsing would blur layers and introduce bugs.
+Grammar is pure: it performs validation and intent construction only.
 
 #### Commands
 ##### NICK
-* Set or change username.
+* Declare intent to set or change username.
 
     `NICK <username>`
 * Rules
     * `<username>` is opaque bytes
     * Length: `1..USERNAME_MAX-1`
-    * No spaces
+    * Must no contain spaces
     * May be reassigned at any time
 * Effects
-    * Updates `client.username`
-    * Does not broadcast
+    * Grammar emits intent to change username
+    * Server applies username mutation
+    * No room membership changes
+    * No broadcasts
 * Errors → disconnect
     * Missing argument
-    * Too long
-    * Contains spaces
+    * Argument too long
+    * Argument contains spaces
 ##### JOIN
-* Enter a room.
+* Declare intent to enter a room.
 
     `JOIN <room_id>`
 * Rules
-    * Parsed using `strtol`
-    * Valid range: implementation-defined (e.g. `0..INT_MAX`)
+    * `<room_id>` parsed using `strtol`
+    * Valid range: implementation-defined (`0..INT_MAX`)
+    * No extra arguments
 * Effects
-    * Sets `client.room_id`
-    * Leaving previous room implicitly
-    * Broadcasts join event to new room
+    * Grammar emits intent to join `<room_id>`
+    * Server execution:
+        * If already in a room: emit LEAVE to old room
+        * Set `clients.room_id` to `<room_id>`
+        * Emit JOIN to destination room
 * Errors → disconnect
     * Missing argument
-    * Non-numeric
-    * Overflow
+    * Non-numeric argument
+    * Overflow or underflow
 ##### LEAVE
-* Leave current room.
+* Declare intent to leave current room.
 
     `LEAVE`
+* Rules
+    * No arguments allowed
 * Effects
-    * Sets `room_id = -1`
-    * Broadcasts leave event
+    * Grammar emits intent to leave current room
+    * Server execution:
+        * Emit LEAVE to current room
+        * Set `client.room_id = -1`
 * Errors → disconnect
     * Extra arguments
 ##### MSG
-* Send a message to current room.
+* Declare intent to send a message to the current room.
 
     `MSG <payload>`
 * Rules
     * `<payload>` is opaque bytes
     * May contain spaces
-    * May contain NULs
+    * May contain embedded NUL bytes
     * Empty payload is allowed
+    * Payload begins after the first space
 * Effects
-    * Broadcast payload to all clients in same room
-    * Sender may or may not receive echo (policy choice)
+    * Grammar emits intent to broadcast payload
+    * Server execution:
+        * Broadcasts payload to all clients in sender's room
+        * Sender echo behavior is implementation-defined but consistent
 * Errors → disconnect
-    * Not in a room
-    * Missing payload
+    * Client is not in a room
+    * Missing payload (no space after `MSG`)
 ##### QUIT
-* Disconnect voluntarily.
+* Declare intent to disconnect.
 
     `QUIT`
+* Rules
+    * No arguments allowed
 * Effects
-    * Server closes socket
-    * Cleanup via `client_remove`
+    * Grammar emits intent to disconnect
+    * Server execution:
+        * If in a room: emit QUIT to that room
+        * Remove client via `client_remove`
+        * Close socket
 * Errors → disconnect
     * Extra arguments
-
+---
 **Error Policy**
 
 * Any grammar violation → immediate disconnect
@@ -303,8 +323,7 @@ This keeps:
 
 **Non-Goals (Explicit)**
 
-* No quoting
-* No escaping
+* No quoting or escaping
 * No UTF-8 validation
 * No authentication
 * No permission checks
@@ -315,33 +334,91 @@ These may be layered later without breaking framing.
 
 ### Layer 3: Executing Room-Scoped Broadcasts and Server Messages
 
-The execution layer is responsible for perfoming side effects derived from validated protocol intent.
+The server executes validated intent and emits protocol-visible events.
+All observable behavior flows through server-owned execution.
 
-**Why printf-only messages are a trap**
-Printf-based messages:
-* Are invisible to connected clients
-* Bypass the protocol entirely
-* Create non-reproducible behavior
-* Are guaranteed to be removed or rewritten
+**Server message format**
 
-All observable behavior must flow through the protocol and
-be delivered via explicit server-managed broadcast paths.
+`[server] <EVENT> <ARGS>\n`
 
-**Grammar MAY mutate**
-* username
-* grammar-local flags
-* temporary metadata used only for validation or intent construction
+* `[server]` is a literal ASCII prefix
+* `<EVENT>` is an uppercase ASCII token
+* `<ARGS>` are space-separated, event-specific arguments
+* No quoting or escaping
 
-**Grammar MUST NOT mutate**
-* room membership (authoritative state)
-* socket state
-* client lifetime
-* input/output buffers
-* global structures
+These messages are observable protocol behavior, not debug output.
 
-* `command_action` does not mirror `Client`.
+#### Server Events
+##### JOIN
+* Emited when a client becomes a member of a room.
 
-It carries just enough information for the server to execute intent safely and in order.
+    `[server] JOIN <username>`
+
+    * Emitted after `client.room_id` mutation
+    * Broadcast scope: destination room
+    * Not delivered to the joining client
+
+##### LEAVE
+* Emitted when a client leaves a room voluntarily.
+
+    `[server] LEAVE <username>`
+
+    * Emitted before `client.room_id` mutation
+    * Broadcast scope: client's current room
+    * Not delivered to the leaving client
+
+##### QUIT
+* Emited when a client disconnects.
+
+    `[server] QUIT <username>`
+
+    * Emitted before client removal
+    * Only if client is in a room
+    * Broadcast scope: client's current room
+    * Not delivered to the disconnecting client
+
+---
+#### Execution Invariant
+* Grammar emits intent only
+* Server owns all state mutation
+* Server determines broadcast scope and ordering
+* Helpers format and fan out messages only
+* All protocol-visible effects reflect execution order
+
+`command_action` does not mirror `Client`, it carries just enough information for the server to execute intent safely and in order.
+
+#### Grammar Constraints
+**Grammar MAY**
+* Parse input bytes
+* Validate syntax and arguments
+* Construct `command_action`
+* Reject malformed input
+
+**Grammar MUST NOT**
+* Mutate `Client`
+* Change room membership
+* Change username
+* Perform I/O
+* Broadcast
+* Close Sockets
+* Remove clients
+* Touch buffers
+
+#### Broadcast Helpers
+* Perform formatting and fan-out only
+* Iterate clients and filter by room
+* Write bytes to sockets
+* Never mutate state
+* Assume correct ordering and context from the caller
+
+#### Debugging Note
+Printf-only messages are not part of the protocol:
+* Invisible to clients
+* Non-reproducible
+* Guaranteed to be removed
+
+Scope note: The protocol specifies only room membership transitions and message delivery.
+UX features (timestamps, counts, acknowledgements, error replies) are intentionally out of scope.
 
 ---
 
@@ -356,5 +433,6 @@ It carries just enough information for the server to execute intent safely and i
 
 ## Scope Notes
 
-* This document describes **current architecture**, not future aspirations.
-* Detailed protocol specification and room management are defined elsewhere.
+* This document describes **current, implemented architecture**, not future aspirations.
+* The protocol specifies only room membership transitions and message delivery.
+* UX features (timestamps, counts, acknowledgements, error replies) are intentionally out of scope.
