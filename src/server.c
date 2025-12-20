@@ -12,9 +12,6 @@ static int server_socket;
 static struct sockaddr_un server_addr;
 static Client clients[MAX_CLIENTS];
 
-static fd_set readfds;
-int max_fd;
-
 void start_server(const char *socket_path)
 {
     // Validate input
@@ -57,10 +54,12 @@ void start_server(const char *socket_path)
 
     clients_init();
     printf("[server] Waiting for connection...\n");
+
+    fd_set readfds;
+    int max_fd;
     while (1)
     {
         FD_ZERO(&readfds);
-
         FD_SET(server_socket, &readfds);
         max_fd = server_socket;
 
