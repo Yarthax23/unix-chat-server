@@ -1,35 +1,56 @@
-## 2025-12-19 – Day Nine
+## 2025-12-19 – Execution Semantics Finalization & Protocol Lock-In
 ### Summary
 
-...
+Finalized execution-layer semantics and protocol-visible server events after the intent-based refactor.
+
+Grammar is now strictly pure: it emits intent only and never mutates client state.
+All authoritative state changes (username, room membership, lifetime) are owned by the server execution layer.
+
+This entry locks down broadcast timing, server-generated message semantics, and helper contracts, bringing the protocol design to a stable, auditable state.
 
 ### Decisions
 
-* ...
+* Grammar must not mutate `Client` under any circumstance, including username changes.
+* Username mutation is an execution-layer responsibility, applied only after validated intent.
+* JOIN is a two-phase transition:
+    * LEAVE is emitted to the old room (if any)
+    * JOIN is emitted to the destination room after mutation
+* LEAVE and QUIT are distinct server events with separate broadcast helpers.
+* Broadcast helpers are pure fan-out utilities and never perform mutation or policy decisions.
+* Protocol-visible server messages are part of the protocol surface, not debug output.
 
 ### Added
 
-* ...
+* Documented server-generated message format and event semantics in `architecture.md`.
+* Defined explicit contracts for broadcast helpers (scope, ordering, exclusions).
+* `broadcast_quit` helper to represent disconnect semantics distinctly from room leave events.
 
 ### Changed
 
-* ...
+* Centralized username mutation logic in the server execution layer.
+* Clarified execution ordering guarantees relative to room membership transitions.
+* Refined grammar and execution documentation to consistently use intent-based language.
+* Tightened architectural scope notes and removed redundant non-goals.
 
 ### Removed
 
-* ...
+* Implicit grammar-side username mutation.
+* Overlapping or ambiguous language around broadcast ordering and scope.
+* Redundant “non-goals” blocks once protocol boundaries were fully specified.
 
 ### Learnings
 
-* ...
-
-### Next steps
-
-* [ ] ...
+* Treating grammar as a pure function (bytes → intent) dramatically simplifies reasoning.
+* Separating LEAVE and QUIT events avoids semantic leakage and special cases later.
+* Ordering guarantees are semantic contracts for observers, not properties of control flow.
+* Once invariants stabilize, documentation should be compressed—not expanded.
 
 ### Notes
 
-* ...
+* `command_action` intentionally does not mirror `Client`; it carries only execution context.
+* Broadcasts are scoped to the room where the event is observed, not where the client ends up.
+* Printf-only messages are explicitly rejected as non-protocol behavior.
+* With execution semantics locked, further work should focus on implementation quality, not design.
 
 
 ## 2025-12-18 – Intent-Based Command Execution Refactor
