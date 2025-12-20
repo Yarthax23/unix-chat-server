@@ -1,3 +1,37 @@
+## 2025-12-20 – Day Ten
+### Summary
+
+...
+
+### Decisions
+
+* ...
+
+### Added
+
+* ...
+
+### Changed
+
+* ...
+
+### Removed
+
+* ...
+
+### Learnings
+
+* ...
+
+### Next Steps
+
+* [] ...
+
+### Notes
+
+* ...
+
+
 ## 2025-12-19 – Execution Semantics Finalization & Protocol Lock-In
 ### Summary
 
