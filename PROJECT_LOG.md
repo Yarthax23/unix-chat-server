@@ -1,3 +1,37 @@
+## 2025-12-21 – Day Eleven
+### Summary
+
+...
+
+### Decisions
+
+* ...
+
+### Added
+
+* ...
+
+### Changed
+
+* ...
+
+### Removed
+
+* ...
+
+### Learnings
+
+* ...
+
+### Next Steps
+
+* [] ...
+
+### Notes
+
+* ...
+
+
 ## 2025-12-20 – Initial Implementation Against Locked Spec
 ### Summary
 
