@@ -39,22 +39,29 @@ The design prioritizes **simplicity, correctness, and explicit state management*
 +-----------------------+
 ```
 
+Incoming data flows through the server as a strict pipeline:
+```
+recv → byte stream → framing → grammar → intent → execution → delivery → send
+```
+Each stage has exclusive responsibility and must not perform work belonging to a later stage.
+
+
 ### Dependencies
 ```
-+-----------------------------------+
-|   server.c                        |
-|   ├── owns Client state           |
-|   ├── owns sockets                |
-|   ├── owns event loop             |
-|   ├── owns broadcast_message()    |
-|   └── calls grammar               |
-|                                   |
-|   grammar.c                       |
-|   ├── parses messages             |
-|   ├── validates arguments         |
-|   ├── returns intent              |
-|   └── NEVER performs I/O          |
-+-----------------------------------+
++-------------------------------+
+|   server.c                    |
+|   ├── owns Client state       |
+|   ├── owns sockets            |
+|   ├── owns event loop         |
+|   ├── owns broadcast_*        |
+|   └── calls grammar           |
+|                               |
+|   grammar.c                   |
+|   ├── parses messages         |
+|   ├── validates arguments     |
+|   ├── returns intent          |
+|   └── NEVER performs I/O      |
++-------------------------------+
 ```
 
 * Grammar returns validated intent; the server applies state changes and broadcasts.
