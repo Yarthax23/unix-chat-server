@@ -24,7 +24,7 @@ static void client_set_username(Client *c, const char *p, size_t len);
 static int broadcast_join(int room_id, Client *c);
 static int broadcast_leave(int room_id, Client *c);
 static int broadcast_quit(int room_id, Client *c);
-static void broadcast_room(int room_id, Client *sender, const char *msg, size_t len);
+static int broadcast_room(int room_id, Client *sender, const char *msg, size_t len);
 
 void start_server(const char *socket_path)
 {
@@ -179,7 +179,7 @@ void start_server(const char *socket_path)
                 msg[msg_len] = '\0';
 
                 // Process msg
-                printf("[server] Client %d says: %s\n", i, msg);
+                printf("[server] Client %d sent %s\n", i, msg);
                 command_action action = handle_command(c, msg, msg_len);
 
                 switch (action.type)
@@ -225,7 +225,11 @@ void start_server(const char *socket_path)
 
                 case CMD_BROADCAST_MSG:
                     if (c->room_id != -1)
-                        broadcast_room(c->room_id, c, action.payload, action.payload_len);
+                        if (broadcast_room(c->room_id, c, action.payload, action.payload_len) == -1)
+                        {
+                            perror("room");
+                            exit(EXIT_FAILURE);
+                        }
                     break;
 
                 case CMD_OK:
@@ -360,10 +364,24 @@ static int broadcast_quit(int room_id, Client *c)
     return 0;
 }
 
-static void broadcast_room(int room_id, Client *sender, const char *msg, size_t len)
+static int broadcast_room(int room_id, Client *sender, const char *msg, size_t len)
 {
-    (void)room_id;
-    (void)sender;
-    (void)msg;
-    (void)len;
+    // Format message `<username>: <payload>\n`
+    char buf[len + USERNAME_MAX + 3]; // ':' space + '\n'
+
+    int written = snprintf(buf, sizeof(buf), "%s: %s\n", sender->username, msg);
+    if (written < 0 || (size_t)written >= sizeof(buf))
+        return -1;
+
+    // Broadcast
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        if (clients[i].socket != -1 &&             // closed socket
+            clients[i].socket != sender->socket && // echo sender
+            clients[i].room_id == room_id)         // filter room
+
+            if (send(clients[i].socket, buf, (size_t)written, 0) == -1)
+                return -1;
+    }
+    return 0;
 }
