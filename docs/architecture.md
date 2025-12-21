@@ -334,21 +334,26 @@ These may be layered later without breaking framing.
 
 ### Layer 3: Executing Room-Scoped Broadcasts and Server Messages
 
-The server executes validated intent and emits protocol-visible events.
+The server executes validated intent and emits all protocol-visible behavior.
 All observable behavior flows through server-owned execution.
 
-**Server message format**
+Protocol-visible output produced by the server falls into two categories:
+* Server events, which describe server-observed state transitions
+* Room messages, which relay client-authored payloads
+
+Only the former are considered server events.
+
+#### Server Events
+Server events are messages authored by the server to announce changes in system state (e.g. room membership or client lifetime).
 
 `[server] <EVENT> <ARGS>\n`
-
 * `[server]` is a literal ASCII prefix
 * `<EVENT>` is an uppercase ASCII token
 * `<ARGS>` are space-separated, event-specific arguments
 * No quoting or escaping
 
-These messages are observable protocol behavior, not debug output.
+These messages are protocol-defined output, not debug or logging output.
 
-#### Server Events
 ##### JOIN
 * Emited when a client becomes a member of a room.
 
@@ -378,6 +383,17 @@ These messages are observable protocol behavior, not debug output.
     * Not delivered to the disconnecting client
 
 ---
+
+#### Room Message Delivery
+Client-authored messages (MSG) are delivered as room messages and do not use the server event format.
+
+`<username>: <payload>\n`
+* "`: `" is a literal two-byte delimiter (colon + space)
+
+The server does not inspect, modify, or interpret payload bytes.
+
+---
+
 #### Execution Invariant
 * Grammar emits intent only
 * Server owns all state mutation
