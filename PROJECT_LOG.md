@@ -1,5 +1,38 @@
-## 2025-12-21 – Broadcast Surface Completed
+## 2025-12-22 – Day Twelve
+### Summary
 
+...
+
+### Decisions
+
+* ...
+
+### Added
+
+* ...
+
+### Changed
+
+* ...
+
+### Removed
+
+* ...
+
+### Learnings
+
+* ...
+
+### Next Steps
+
+* [] ...
+
+### Notes
+
+* ...
+
+
+## 2025-12-21 – Broadcast Surface Completed
 ### Summary
 
 Completed all remaining protocol-defined broadcast helpers and finalized
