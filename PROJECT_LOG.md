@@ -1,35 +1,45 @@
-## 2025-12-21 – Day Eleven
+## 2025-12-21 – Broadcast Surface Completed
+
 ### Summary
 
-...
+Completed all remaining protocol-defined broadcast helpers and finalized
+room-scoped message delivery in the execution layer.
 
-### Decisions
+Architecture documentation was updated to reflect the implemented delivery flow
+and to distinguish server events from room messages.
 
-* ...
+No protocol semantics or ordering guarantees were changed.
+
+---
 
 ### Added
 
-* ...
+* `broadcast_leave`, `broadcast_quit`, and `broadcast_room` helpers.
+* Execution-layer room message fan-out.
+* Minimal end-to-end data flow diagram (`recv → … → send`).
+
+---
 
 ### Changed
 
-* ...
+* Clarified documentation separation between server events and room messages.
+* Tightened execution ownership of delivery timing and scope.
 
-### Removed
-
-* ...
+---
 
 ### Learnings
 
-* ...
+* Helper contracts held without modification once fully exercised.
+* Delivery belongs in execution, not protocol definition.
+* Duplication is acceptable until verification is complete.
+
+---
 
 ### Next Steps
 
-* [] ...
-
-### Notes
-
-* ...
+* [ ] Audit execution ordering for JOIN / MSG / LEAVE / QUIT.
+* [ ] Manual multi-client protocol testing.
+* [ ] Optional helper refactor (no behavior changes).
 
 
 ## 2025-12-20 – Initial Implementation Against Locked Spec
