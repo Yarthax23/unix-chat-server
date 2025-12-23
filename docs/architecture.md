@@ -14,6 +14,11 @@ Key characteristics:
 
 The design prioritizes **simplicity, correctness, and explicit state management** over early optimization.
 
+The v0.1.x series establishes and validates the initial protocol semantics and execution model.
+
+v0.1.x uses blocking sockets coordinated via `select()`. This decision is intentional and may be revisited in future iterations.
+
+
 ---
 
 ## High-level Architecture

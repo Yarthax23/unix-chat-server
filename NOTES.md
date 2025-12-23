@@ -6,20 +6,23 @@
 
 ## 1. Ideas
 
-Layer 1 — Framing
-* Bytes → messages
+Future work (post-v0.1.x):
 
-Layer 2 — Grammar
-* Messages → intent
-
-Layer 3 — Execution
-* Intent → side effects
-
-Broadcasting lives in Layer 3 (delegated to future room module).
-
-* Give client a minimum set of chances to get the command right.
+* Targeted nc/socat tests for each command
+* Protocol extensions
+  * Give client a minimum set of chances to get the command right.
   * Give a help response on command usage or suggestions after trying some times.
-  * Implement a HELP cmd to list all commmand usages.
+  * Implement a HELP cmd to list all commmand usages or available.
+* Minigame support
+  * timers, rounds
+  * game state
+  * per-room logic
+* Additional broadcast abstractions if needed
+
+Detailed step-by-step execution traces are deferred until command interactions become non-trivial (e.g., minigames):
+* A command affects multiple subsystems
+* Ordering bugs become plausible
+* Protocol behavior is no longer obvious from the switch
 
 ---
 
