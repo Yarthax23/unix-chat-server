@@ -5,8 +5,8 @@ bin/
 *.out
 *.exe
 
-./screenshots
-*.png
+# Manual Testing
+Screenshot_*
 
 # Debug
 *.dSYM/
