@@ -1,36 +1,58 @@
-## 2025-12-23 – Day Thirteen
+## 2025-12-23 – Day Thirteen: Protocol Evolution Boundary
 ### Summary
 
-...
+Defined a protocol evolution boundary by introducing an explicit handshake.
+grammar and formal versioning rules, without changing v0.1.x runtime behavior.
 
 ### Decisions
 
-* ...
+* Introduce an optional `HELLO` command as a protocol handshake.
+* Protocol semantics are undecided until the first non-HELLO command, at which point they lock for the lifetime of the connection.
+* Versioning represents semantic contracts, not feature sets.
+* Unknown commands remain a hard disconnect.
+* Formally defining protocol lifecycle states.
 
 ### Added
 
-* ...
+* Draft handshake grammar (`HELLO <version> [capability...]`).
+* `protocol-evolution.md` documenting:
+
+  * versioning model
+  * capability rules
+  * forward-compatibility constraints
+
+* Added an explicit protocol mode field to the Client structure to track protocol lifecycle state for the lifetime of the connection. 
 
 ### Changed
 
-* ...
+* Clarified protocol lifecycle to include an explicit pre-command phase.
+* Elevated versioning from an implicit assumption to a formal contract.
 
 ### Removed
 
-* ...
+* Implicit assumption that all clients share the same protocol semantics.
 
 ### Learnings
 
-* ...
+* About project management: Scope creep is mainly harmful, it can and will be mitigated as possible.
+    * See https://en.wikipedia.org/wiki/Scope_creep
+* Versioning is easiest to define immediately after validation.
+* Capabilities align naturally with intent-based grammar.
+* Formal non-goals are as important as features for architectural clarity.
 
 ### Next Steps
 
-* [] ...
+* [ ] Decide whether `HELLO` is enforced in v0.2 or remains optional.
+* [ ] Design first capability-gated feature (minigame commands).
+* [ ] Add execution-order invariants for multi-step interactions.
 
 ### Notes
 
-* ...
+* No changes were made to framing, grammar purity, or execution ordering.
+* v0.1.x semantics remain closed and authoritative.
+* Polished and finalized in early January after additional review.
 
+---
 
 ## 2025-12-22 – Baseline Validation
 ### Summary
@@ -71,8 +93,8 @@ divergent from this baseline.
 
 ### Next Steps
 
-* Design minigame protocol extensions on top of the validated v0.1.x baseline.
-* Define a protocol evolution / versioning strategy for additive features.
+* [ ] Design minigame protocol extensions on top of the validated v0.1.x baseline.
+* [x] Define a protocol evolution / versioning strategy for additive features.
 
 ### Notes
 
