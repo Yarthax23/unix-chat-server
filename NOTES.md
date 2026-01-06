@@ -6,18 +6,29 @@
 
 ## 1. Ideas
 
+* Targeted nc/socat tests for each command
+
 Future work (post-v0.1.x):
 
-* Targeted nc/socat tests for each command
-* Protocol extensions
-  * Give client a minimum set of chances to get the command right.
-  * Give a help response on command usage or suggestions after trying some times.
-  * Implement a HELP cmd to list all commmand usages or available.
-* Minigame support
-  * timers, rounds
-  * game state
-  * per-room logic
-* Additional broadcast abstractions if needed
+## 1. Ideas
+
+Future work (post-v0.1.x, speculative):
+
+### Protocol extensions
+* Error tolerance / recovery strategies
+  * Limited retry budget for malformed commands
+  * Optional HELP responses after repeated failures
+  * Explicit HELP command listing supported syntax
+* Forward-compatible handling of unknown commands
+  * Treat unknown commands as future protocol surface
+  * Possible logging or persistence for later analysis
+* Parsing ergonomics
+  * Case-insensitive commands (uppercasing abstraction)
+
+### Minigame support
+* timers, rounds
+* game state
+* per-room logic
 
 Detailed step-by-step execution traces are deferred until command interactions become non-trivial (e.g., minigames):
 * A command affects multiple subsystems
@@ -33,6 +44,7 @@ Detailed step-by-step execution traces are deferred until command interactions b
 * Signals and process handling (`sigaction`: `signal` is deprecated)
 * `epoll` as a scalable alternative to `select`
 * Linux and Unix System Programming course https://man7.org/training/
+* Project Management: Scope creep
 
 ---
 

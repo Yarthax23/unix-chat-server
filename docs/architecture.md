@@ -416,6 +416,11 @@ UX features (timestamps, counts, acknowledgements, error replies) are intentiona
 
 ---
 
+## Protocol Evolution
+
+Protocol evolution constraints are defined in protocol-evolution.md
+and are treated as architectural invariants.
+
 ## Design Principles
 
 * Prefer explicit state over implicit behavior
