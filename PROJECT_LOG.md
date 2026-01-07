@@ -1,3 +1,38 @@
+## 2026-01-06 – Day Fourteen: Capability-Gated Interaction Design
+### Summary
+
+...
+
+### Decisions
+
+* ...
+
+### Added
+
+* ...
+
+### Changed
+
+* ...
+
+### Removed
+
+* ...
+
+### Learnings
+
+* ...
+
+### Next Steps
+
+* [ ] ...
+
+### Notes
+
+* ...
+
+---
+
 ## 2025-12-23 – Day Thirteen: Protocol Evolution Boundary
 ### Summary
 
