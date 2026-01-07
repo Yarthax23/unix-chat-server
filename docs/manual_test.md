@@ -17,17 +17,17 @@ and broadcast scope under real event-driven conditions.
 **Figure 1 – Server protocol execution.**
 Event-driven `select()` loop processing multiple clients, emitting JOIN/LEAVE/QUIT events.
 
-![Server – protocol execution](../screenshots/25-12-21_server-terminal.png)
+![Server – protocol execution](../assets/screenshots/25-12-21_server-terminal.png)
 
 **Figure 2 – Spectator client (Toad).**
 Protocol view from a passive client, observing server events and user messages.
 
-![Spectator client (Toad)](../screenshots/25-12-21_client-toad.png)
+![Spectator client (Toad)](../assets/screenshots/25-12-21_client-toad.png)
 
 **Figure 3 – Active clients (Mario, Luigi and Peach).**
 Demonstrates concurrent message emission by multiple clients in the same room.
 
-![Spectator client (Toad)](../screenshots/25-12-21_client-mario-luigi-peach.png)
+![Spectator client (Toad)](../assets/screenshots/25-12-21_client-mario-luigi-peach.png)
 
 This scenario validates:
 

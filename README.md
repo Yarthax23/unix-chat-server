@@ -98,19 +98,24 @@ make clean
 
 ```text
 ├── app/
-│   └── main.c              # Application entry point
-├── docs/
-│   ├── architecture.md     # Canonical architecture & protocol spec
-│   └── standards.md        # Coding and design rules
+│   └── main.c                # Application entry point
 ├── src/
-│   ├── server.c            # Server implementation (authoritative state)
-│   ├── server.h            # Server public interface
-│   ├── grammar.c           # Command parsing and validation
-│   └── grammar.h           # Grammar public interface
-├── test/
-├── NOTES.md                # Personal notes and ideas
-├── PROJECT_LOG.md          # Daily progress log
-├── README.md               # Project overview (this file)
+│   ├── server.c              # Server implementation (authoritative state & execution)
+│   ├── server.h              # Server public interface
+│   ├── grammar.c             # Command parsing and validation
+│   └── grammar.h             # Grammar public interface
+├── docs/
+│   ├── architecture.md       # Canonical architecture, invariants, and data flow
+│   ├── protocol_evolution.md # Protocol lifecycle, versioning, and forward-compat rules
+│   ├── execution_audit.md    # Execution ordering and broadcast audit
+│   ├── standards.md          # Coding, style, and design rules
+│   └── manual_test.md        # Manual multi-client testing notes
+├── assets/
+│   ├── diagrams/             # Architecture and protocol diagrams
+│   └── screenshots/          # Manual testing evidence
+├── NOTES.md                  # Personal notes, ideas, and deferred work
+├── PROJECT_LOG.md            # Chronological design and implementation log
+├── README.md                 # Project overview (this file)
 ├── Makefile
 └── .gitignore
 ```
